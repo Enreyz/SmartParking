@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.ListView;
 import android.database.Cursor;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 import com.example.smartparking.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ParkingListActivity extends Activity {
     private static final String TAG = ParkingListActivity.class.getSimpleName();
@@ -36,6 +38,9 @@ public class ParkingListActivity extends Activity {
     private SessionManager session;
     private SQLiteHandler MyHelper;
     private SQLiteDatabase db;
+    ArrayList<HashMap<String, String>> arrayList=new ArrayList<>();
+    HashMap<String,String> map;
+    SimpleAdapter adapter;
     String HttpJSonURL = "http://192.168.1.2/android_login_api/list.php";
 
     @Override
@@ -61,12 +66,15 @@ public class ParkingListActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View v,int i, long id ) {
 
                 Intent intent = new Intent(ParkingListActivity.this, FormActivity.class);
-                TextView name=(TextView)findViewById(R.id.text1);
-                TextView address=(TextView)findViewById(R.id.text2);
-                TextView cnt_plc=(TextView)findViewById(R.id.text3);
-                intent.putExtra("name",name.getText().toString());
-                intent.putExtra("address",address.getText().toString());
-                intent.putExtra("cnt_plc",cnt_plc.getText().toString());
+                TextView nameview=(TextView)findViewById(R.id.text1);
+                TextView addressview=(TextView)findViewById(R.id.text2);
+                TextView cnt_plcview=(TextView)findViewById(R.id.text3);
+                String name=nameview.getText().toString();
+                String address=addressview.getText().toString();
+                String cnt_plc=cnt_plcview.getText().toString();
+                intent.putExtra("name",name);
+                intent.putExtra("address",address);
+                intent.putExtra("count_places",cnt_plc);
                 startActivity(intent);
                 finish();
             }
@@ -135,15 +143,14 @@ public class ParkingListActivity extends Activity {
 
                                 jsonObject = jsonArray.getJSONObject(i);
 
+                                String tempUid = jsonObject.getString("unique_id");
+
                                 String tempName = jsonObject.getString("name");
-
-                                String tempAddress = jsonObject.getString("address");
-                                String tempUid =jsonObject.getString("unique_id");
+                                String tempAddress =jsonObject.getString("address");
+                                String tempCount = jsonObject.getString("count_places");
                                 String tempCreated = jsonObject.getString("created_at");
-                                String tempCount=jsonObject.getString("cnt_plc");
-                                String tempPlcid = jsonObject.getString("id_plc");
 
-                                MyHelper.addPlace(tempName, tempAddress, tempUid, tempCreated,tempCount,tempPlcid);
+                                MyHelper.addPlace(tempName, tempAddress, tempUid, tempCreated,tempCount);
 
                                 /*String SQLiteDataBaseQueryHolder = "INSERT INTO "+SQLiteHelper.TABLE_NAME+" (subjectName,subjectFullForm) VALUES('"+tempSubjectName+"', '"+tempSubjectFullForm+"');";
 
@@ -171,14 +178,31 @@ public class ParkingListActivity extends Activity {
 
         {
             userCursor = MyHelper.getPlaceDetails();
+           // Log.d(TAG, String.valueOf(userCursor.getCount()));
+           /* userCursor.moveToFirst();
+            while(!userCursor.isAfterLast())
+            {
+                map=new HashMap<>();
+                map.put(MyHelper.KEY_NAME,userCursor.getString(userCursor.getColumnIndex(MyHelper.KEY_NAME)));
+                map.put(MyHelper.KEY_ADDRESS,userCursor.getString(userCursor.getColumnIndex(MyHelper.KEY_ADDRESS)));
+                map.put(MyHelper.KEY_COUNT_PLACE,userCursor.getString(userCursor.getColumnIndex(MyHelper.KEY_COUNT_PLACE)));
+                arrayList.add(map);
+                userCursor.moveToNext();
+            }*/
             // определяем, какие столбцы из курсора будут выводиться в ListView
             String[] headers = new String[]{MyHelper.KEY_NAME, MyHelper.KEY_ADDRESS, MyHelper.KEY_COUNT_PLACE};
+
+            //-----------
             // создаем адаптер, передаем в него курсор
             userAdapter = new SimpleCursorAdapter(ParkingListActivity.this, R.layout.list_item,
                     userCursor, headers, new int[]{R.id.text1, R.id.text2, R.id.text3}, 0);
             header.setText("Найдено элементов: " + String.valueOf(userCursor.getCount()));
             userList.setAdapter(userAdapter);
             userAdapter.notifyDataSetChanged();
+            //------------
+           /*adapter=new SimpleAdapter(ParkingListActivity.this, arrayList, R.layout.list_item, headers, new int[]{R.id.text1, R.id.text2, R.id.text3});
+            header.setText("Найдено элементов: " + String.valueOf(userCursor.getCount()));
+            userList.setAdapter(adapter);*/
         }
     }
 
