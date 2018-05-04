@@ -8,5 +8,5 @@ public class AppConfig {
     public static String URL_REGISTER = "http://172.20.10.3/android_login_api/register.php";
 
     //
-    public static String URL_PLACE = "http://172.20.10.3/android_login_api/place.php";
+    public static String URL_ORDER = "http://172.20.10.3/android_login_api/register_order.php";
 }

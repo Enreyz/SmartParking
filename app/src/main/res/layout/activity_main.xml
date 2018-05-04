@@ -23,7 +23,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:textColor="@color/lbl_name"
             android:textSize="24dp" />
 
         <TextView
@@ -48,12 +47,15 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dip"
-            android:background="@color/btn_logout_bg"
+            android:background="@null"
             android:text="@string/btn_logout"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="#6d6d6d"
             android:textSize="15dp" />
 
     </LinearLayout>
 
 </RelativeLayout>
+
+
+

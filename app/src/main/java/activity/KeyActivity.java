@@ -15,8 +15,8 @@ public class KeyActivity extends Activity{
     ImageView tnsd_iv_qr ;
     String data;
     BitMatrix bitMatrix;
-    int width = 512;
-    int height = 512;
+    int width = 600;
+    int height = 600;
     Bitmap bmp;
 
 
@@ -28,9 +28,9 @@ public class KeyActivity extends Activity{
         myMethod();
     }
     public void myMethod() {
-        data = "http://www.google.com";
+        data = "/http/.....";
         try {
-            bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512);
+            bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 600, 600);
         } catch (WriterException e1) {
             e1.printStackTrace();
         }
