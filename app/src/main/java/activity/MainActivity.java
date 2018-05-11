@@ -88,15 +88,13 @@ public class MainActivity extends Activity {
         });
     }
 
-    /**
-     * Logging out the user. Will set isLoggedIn flag to false in shared
-     * preferences Clears the user data from sqlite users table
-     * */
+    /*
+     Logging out the user. Will set isLoggedIn flag to false in shared
+     preferences Clears the user data from sqlite users table */
+
     public void logoutUser() {
         session.setLogin(false);
-
         db.deleteUsers();
-
         // Launching the login activity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);

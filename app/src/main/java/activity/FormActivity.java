@@ -50,7 +50,6 @@ public class FormActivity extends Activity {
         String queryIns;
         Cursor cursor;
         String count;
-        //SQLiteDatabase sqdb=db.getWritableDatabase();
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -69,10 +68,10 @@ public class FormActivity extends Activity {
             vText3=(TextView)findViewById(R.id.vText3);
             // btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
             Intent intent=getIntent();
-            String name=intent.getStringExtra("name");
+            String nameplace=intent.getStringExtra("name");
             String address=intent.getStringExtra("address");
             String count_places=intent.getStringExtra("count_places");
-            vText.setText("Parking name: "+ name);
+            vText.setText("Parking name: "+ nameplace);
             vText2.setText("Parking address: "+ address);
             vText3.setText("count free places: " + count_places);
             // Progress dialog
@@ -101,11 +100,8 @@ public class FormActivity extends Activity {
                     String surname = inputSecName.getText().toString().trim();
 
                     if (!name.isEmpty() && !surname.isEmpty()) {
-                        registerOrder(name, surname);
-                        Intent intent = new Intent(FormActivity.this,
-                                KeyActivity.class);
-                        startActivity(intent);
-                        finish();
+                        registerOrder(name, surname, nameplace);
+
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 "Please enter your details!", Toast.LENGTH_LONG)
@@ -138,7 +134,7 @@ public class FormActivity extends Activity {
          * Function to store user in MySQL database will post params(tag, name,
          * email, password) to register url
          * */
-        private void registerOrder(final String name, final String surname) {
+        private void registerOrder(final String name, final String surname, final String nameplace) {
             // Tag used to cancel the request
             String tag_string_req = "req_register";
 
@@ -168,7 +164,12 @@ public class FormActivity extends Activity {
 
                                 Toast.makeText(getApplicationContext(), "Order successfully registered. Try login now!", Toast.LENGTH_LONG).show();
 
-                                // Launch login activity
+                                // Launch key activity
+                                Intent intent = new Intent(FormActivity.this,
+                                        KeyActivity.class);
+                                startActivity(intent);
+                                finish();
+                                decrement(nameplace);
                             } else {
 
                                 // Error occurred in registration. Get the error
@@ -209,6 +210,104 @@ public class FormActivity extends Activity {
             AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
         }
 
+        //decrement
+
+    private void decrement(final String name) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_decrement";
+        StringRequest strReq = new StringRequest(Method.POST,
+                AppConfig.URL_DECREMENT, response -> {
+            Log.d(TAG, "Decrement Response: " + response.toString());
+            try {
+                JSONObject jObj = new JSONObject(response);
+                boolean error = jObj.getBoolean("error");
+                if (!error) {
+                } else {
+                    // Error occurred in decrement. Get the error
+                    // message
+                    String errorMsg = jObj.getString("error_msg");
+                    Toast.makeText(getApplicationContext(),
+                            errorMsg, Toast.LENGTH_LONG).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Error 101: " + error.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        }) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                // Posting params to decrement url
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("name", name);
+                return params;
+            }
+
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    /*
+    *
+    *   private void increment(final String name) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_increment";
+        StringRequest strReq = new StringRequest(Method.POST,
+                AppConfig.URL_INCREMENT, response -> {
+            Log.d(TAG, "Increment Response: " + response.toString());
+            try {
+                JSONObject jObj = new JSONObject(response);
+                boolean error = jObj.getBoolean("error");
+                if (!error) {
+                } else {
+                    // Error occurred in increment. Get the error
+                    // message
+                    String errorMsg = jObj.getString("error_msg");
+                    Toast.makeText(getApplicationContext(),
+                            errorMsg, Toast.LENGTH_LONG).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Error 102: " + error.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        }) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                // Posting params to increment url
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("name", name);
+                return params;
+            }
+
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+    *
+    * */
+
         private void showDialog() {
             if (!pDialog.isShowing())
                 pDialog.show();
@@ -218,14 +317,4 @@ public class FormActivity extends Activity {
             if (pDialog.isShowing())
                 pDialog.dismiss();
         }
-    public void logoutOrder() {
-        session.setLogin(false);
-
-        db.deleteOrders();
-
-        // Launching the login activity
-        Intent intent = new Intent(FormActivity.this, ParkingListActivity.class);
-        startActivity(intent);
-        finish();
-    }
     }

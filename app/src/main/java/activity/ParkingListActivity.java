@@ -41,12 +41,11 @@ public class ParkingListActivity extends Activity {
     ArrayList<HashMap<String, String>> arrayList=new ArrayList<>();
     HashMap<String,String> map;
     SimpleAdapter adapter;
-    String HttpJSonURL = "http://172.20.10.3/android_login_api/list.php";
+    String HttpJSonURL = "http://172.20.10.2/android_login_api/list.php";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "In onCreate at PLA ");
         setContentView(R.layout.activity_parkinglist);
         header = (TextView) findViewById(R.id.header);
         userList = (ListView) findViewById(R.id.list);
@@ -54,9 +53,6 @@ public class ParkingListActivity extends Activity {
         MyHelper.deletePlaces();
         new SyncDB(ParkingListActivity.this).execute();
         //session manager
-
-
-        Log.d(TAG, "In onCreate2 at PLA ");
         session = new SessionManager(getApplicationContext());
         if (!session.isLoggedIn()) {
             logoutUser();
@@ -64,7 +60,6 @@ public class ParkingListActivity extends Activity {
         userList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View v,int i, long id ) {
-
                 Intent intent = new Intent(ParkingListActivity.this, FormActivity.class);
                 TextView nameview=(TextView)findViewById(R.id.text1);
                 TextView addressview=(TextView)findViewById(R.id.text2);
