@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.text.format.DateUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.Calendar;
+import android.widget.DatePicker;
+import android.widget.TimePicker;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.app.TimePickerDialog.OnTimeSetListener;
+import android.app.DatePickerDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
 
 import com.android.volley.Request.Method;
 import com.android.volley.Response;
@@ -21,6 +30,7 @@ import com.android.volley.toolbox.StringRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,27 +56,29 @@ public class FormActivity extends Activity {
         TextView vText;
         TextView vText2;
         TextView vText3;
-        String query;
-        String queryIns;
-        Cursor cursor;
-        String count;
+        TextView date;
+        TextView time;
+        String years;
+        String month;
+        String day;
+        String hours;
+        String minutes;
+        String date_order;
+        String time_order;
+        Calendar dateAndTime=Calendar.getInstance();
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_form);
-            queryIns="INSERT INTO " + db.TABLE_PLACES + "(" + db.KEY_COUNT_PLACE + ") VALUES ('" + count + "')";
-
-            query="SELECT" +  db.KEY_COUNT_PLACE + " FROM "+ db.TABLE_PLACES + "AS A " +
-                    "INNER JOIN " + db.TABLE_ORDER + "AS B" + " ON " + "A." + db.KEY_UID + "=" + "B." + db.KEY_UID;
-
             inputFullName = (EditText) findViewById(R.id.name);
             inputSecName = (EditText) findViewById(R.id.secname);
             btnRegister = (Button) findViewById(R.id.btnRegister);
             vText=(TextView)findViewById(R.id.vText);
             vText2=(TextView)findViewById(R.id.vText2);
             vText3=(TextView)findViewById(R.id.vText3);
-            // btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
+            date=(TextView)findViewById(R.id.date);
+            time=(TextView)findViewById(R.id.time);
             Intent intent=getIntent();
             String nameplace=intent.getStringExtra("name");
             String address=intent.getStringExtra("address");
@@ -78,20 +90,17 @@ public class FormActivity extends Activity {
             pDialog = new ProgressDialog(this);
             pDialog.setCancelable(false);
 
-            // Session manager
+            //
+
+            //session manager
             session = new SessionManager(getApplicationContext());
+            if (!session.isLoggedIn()) {
+                logoutUser();
+            }
 
             // SQLite database handler
             db = new SQLiteHandler(getApplicationContext());
 
-            // Check if user is already logged in or not
-           /*if (session.isLoggedIn()) {
-                // User is already logged in. Take him to main activity
-                Intent intent = new Intent(activity.FormActivity.this,
-                        MainActivity.class);
-                startActivity(intent);
-                finish();
-            }*/
 
             // Register Button Click event
             btnRegister.setOnClickListener(new View.OnClickListener() {
@@ -100,33 +109,26 @@ public class FormActivity extends Activity {
                     String surname = inputSecName.getText().toString().trim();
 
                     if (!name.isEmpty() && !surname.isEmpty()) {
-                        registerOrder(name, surname, nameplace);
+                        registerOrder(name, surname, nameplace, date_order, time_order);
 
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 "Please enter your details!", Toast.LENGTH_LONG)
                                 .show();
                     }
-
-                    //получение и изменение колличества мест в SQLite
-
-                    /*SQLiteDatabase bd=db.getReadableDatabase();
-                    cursor = bd.rawQuery(query,null);
-                    /*cursor.moveToFirst();
-                    while (!cursor.isAfterLast()) {
-                    count = cursor.getString(cursor.getColumnIndex(db.KEY_COUNT_PLACE));
-                    int cnt_plc = parseInt(count);
-                    cnt_plc--;
-                    count = String.valueOf(cnt_plc);
-                    sqdb.execSQL(queryIns);*/
                 }
             });
 
-            // Link to Login Screen
-        /*    btnLinkToLogin.setOnClickListener(new View.OnClickListener() {
-
+           date.setOnClickListener(new View.OnClickListener() {
+               public void onClick(View view) {
+                   setDate(view);
+               }
+           });
+           time.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    setTime(view);
                 }
-            });*/
+            });
 
         }
 
@@ -134,13 +136,11 @@ public class FormActivity extends Activity {
          * Function to store user in MySQL database will post params(tag, name,
          * email, password) to register url
          * */
-        private void registerOrder(final String name, final String surname, final String nameplace) {
+        private void registerOrder(final String name, final String surname, final String nameplace, final String date_order, final String time_order) {
             // Tag used to cancel the request
             String tag_string_req = "req_register";
-
             pDialog.setMessage("Registering ...");
             showDialog();
-
             StringRequest strReq = new StringRequest(Method.POST,
                     AppConfig.URL_ORDER, response -> {
                         Log.d(TAG, "Register Response: " + response.toString());
@@ -157,10 +157,10 @@ public class FormActivity extends Activity {
                                 String name1 = order.getString("name");
                                 String surname1 = order.getString("surname");
                                 String created_at = order.getString("created_at");
-
-
+                                String date_s = order.getString("date_s");
+                                String time_s = order.getString("time_s");
                                 // Inserting row in users table
-                                db.addOrder(name1, surname1, uid, created_at);
+                                db.addOrder(name1, surname1, uid, created_at, date_s, time_s);
 
                                 Toast.makeText(getApplicationContext(), "Order successfully registered. Try login now!", Toast.LENGTH_LONG).show();
 
@@ -199,8 +199,8 @@ public class FormActivity extends Activity {
                     Map<String, String> params = new HashMap<String, String>();
                     params.put("name", name);
                     params.put("surname", surname);
-
-
+                    params.put("date_s", date_order);
+                    params.put("time_s", time_order);
                     return params;
                 }
 
@@ -257,6 +257,52 @@ public class FormActivity extends Activity {
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
+
+    public void setDate(View v) {
+        new DatePickerDialog(FormActivity.this, d,
+                dateAndTime.get(Calendar.YEAR),
+                dateAndTime.get(Calendar.MONTH),
+                dateAndTime.get(Calendar.DAY_OF_MONTH))
+                .show();
+    }
+
+    // отображаем диалоговое окно для выбора времени
+    public void setTime(View v) {
+        new TimePickerDialog(FormActivity.this, t,
+                dateAndTime.get(Calendar.HOUR_OF_DAY),
+                dateAndTime.get(Calendar.MINUTE), true)
+                .show();
+    }
+
+    private void setInitialDateTime() {
+
+        date.setText(DateUtils.formatDateTime(this,
+                dateAndTime.getTimeInMillis(),
+                DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE));
+        time.setText(DateUtils.formatDateTime(this,
+                dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_TIME));
+    }
+
+    // установка обработчика выбора времени
+    TimePickerDialog.OnTimeSetListener t=new TimePickerDialog.OnTimeSetListener() {
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            dateAndTime.set(Calendar.MINUTE, minute);
+            setInitialDateTime();
+            time_order=String.valueOf(hourOfDay) + ":" + String.valueOf(minute);
+        }
+    };
+
+    // установка обработчика выбора даты
+    DatePickerDialog.OnDateSetListener d=new DatePickerDialog.OnDateSetListener() {
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            dateAndTime.set(Calendar.YEAR, year);
+            dateAndTime.set(Calendar.MONTH, monthOfYear);
+            dateAndTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            setInitialDateTime();
+            date_order=String.valueOf(year) + "-" + String.valueOf(monthOfYear+1) + "-" + String.valueOf(dayOfMonth);
+        }
+    };
 
     /*
     *
@@ -317,4 +363,15 @@ public class FormActivity extends Activity {
             if (pDialog.isShowing())
                 pDialog.dismiss();
         }
+
+    public void logoutUser() {
+        session.setLogin(false);
+
+        db.deleteUsers();
+
+        // Launching the login activity
+        Intent intent = new Intent(FormActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
     }

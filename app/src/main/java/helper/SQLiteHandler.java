@@ -36,6 +36,9 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     public static final String KEY_UID = "uid";
     public static final String KEY_CREATED_AT = "created_at";
     public static final String KEY_COUNT_PLACE = "count_place";
+    public static final String KEY_ORDER_TIME_START="time_s";
+    public static final String KEY_ORDER_DATE_START="date_s";
+
 
     public SQLiteHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -55,7 +58,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String CREATE_LOGIN_TABLE_ORDER = "CREATE TABLE " + TABLE_ORDER + "("
                 + KEY_ID_ORD + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_NAME + " TEXT,"
                 + KEY_SURNAME + " TEXT," + KEY_UID + " TEXT,"
-                + KEY_CREATED_AT + " TEXT " + ")";
+                + KEY_CREATED_AT + " TEXT," + KEY_ORDER_DATE_START + " TEXT, " + KEY_ORDER_TIME_START + " TEXT " + ")";
         db.execSQL(CREATE_LOGIN_TABLE_USER);
         db.execSQL(CREATE_LOGIN_TABLE_PLACES);
         db.execSQL(CREATE_LOGIN_TABLE_ORDER);
@@ -91,7 +94,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         Log.d(TAG, "New user inserted into sqlite: " + id);
     }
-    public void addOrder(String name, String surname, String uid, String created_at) {
+    public void addOrder(String name, String surname, String uid, String created_at, String date_s, String time_s) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -99,6 +102,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         values.put(KEY_SURNAME, surname); // Surname
         values.put(KEY_UID, uid); // Uid
         values.put(KEY_CREATED_AT, created_at); // Created At
+        values.put(KEY_ORDER_DATE_START, date_s);
+        values.put(KEY_ORDER_TIME_START, time_s);
         // Inserting Row
         long id = db.insert(TABLE_ORDER, null, values);
         db.close(); // Closing database connection

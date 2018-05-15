@@ -106,6 +106,34 @@
                 android:textColorHint="@color/text"
                 android:textSize="14sp" />
 
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:layout_marginBottom="5dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="10dp"
+                android:text="Choose date"/>
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:layout_marginBottom="5dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="10dp"
+                android:text="Choose time"/>
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
